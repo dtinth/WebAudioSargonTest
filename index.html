@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title></title>
+</head>
+<body>
+<div id="logs"></div>
+<script>
+function log (text) {
+  var el = document.createElement('div')
+  el.textContent = text
+  document.querySelector('#logs').appendChild(el)
+}
+log('Loading audio...')
+var ac = new (window.AudioContext || window.webkitAudioContext)()
+var xh = new XMLHttpRequest()
+xh.open('GET', 'assist.wav', true)
+xh.responseType = 'arraybuffer'
+xh.onload = function () {
+  log('Decoding audio')
+  ac.decodeAudioData(
+    xh.response,
+    function (b) {
+      log('Audio decoded. Tap screen')
+      window.ontouchstart = function (e) {
+        e.preventDefault()
+        go()
+      }
+      window.onmousedown = function (e) {
+        e.preventDefault()
+        go()
+      }
+      function go () {
+        var node = ac.createBufferSource()
+        node.buffer = b
+        node.connect(ac.destination)
+        node.start()
+      }
+    },
+    function () {
+      log('Cannot decode')
+    }
+  )
+}
+xh.send(null)
+</script>
+</body>
+</html>
